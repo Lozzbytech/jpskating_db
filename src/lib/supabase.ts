@@ -24,4 +24,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 console.log("[SUPABASE] Client initialized successfully");
 
+// Test connectivity
+export async function testSupabaseConnection() {
+  try {
+    console.log("[SUPABASE] Testing connection...");
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("[SUPABASE] Connection test failed:", error);
+      return false;
+    }
+    console.log("[SUPABASE] Connection test passed");
+    return true;
+  } catch (error) {
+    console.error("[SUPABASE] Connection test error:", error);
+    return false;
+  }
+}
+
 export type Database = any;
