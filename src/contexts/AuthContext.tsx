@@ -149,7 +149,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.user) {
         try {
           console.log("[AUTH] Fetching profile for user:", data.user.id);
-          const profile = await profileService.getById(data.user.id);
+
+          // Add timeout to profile fetch (3 seconds)
+          const profilePromise = profileService.getById(data.user.id);
+          const profileTimeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Profile fetch timeout")), 3000)
+          );
+
+          const profile = await Promise.race([profilePromise, profileTimeoutPromise]);
+
           console.log("[AUTH] Profile fetched:", profile);
           setUser({
             ...profile,
@@ -157,7 +165,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         } catch (profileError) {
           console.error("[AUTH] Profile fetch error:", profileError);
-          // Even if profile fetch fails, user is authenticated
+          // Even if profile fetch fails, user is authenticated - allow login to proceed
+          console.log("[AUTH] Using fallback user object");
           setUser({
             id: data.user.id,
             email: data.user.email || email,
