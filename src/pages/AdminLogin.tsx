@@ -24,6 +24,13 @@ export default function AdminLogin() {
     checkConnection();
   }, []);
 
+  // Auto-redirect when user becomes admin
+  useEffect(() => {
+    if (user && isAdmin && !isSubmitting) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [user, isAdmin, isSubmitting, navigate]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -33,10 +40,6 @@ export default function AdminLogin() {
         </div>
       </div>
     );
-  }
-
-  if (user && isAdmin) {
-    return <Navigate to="/admin/dashboard" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
