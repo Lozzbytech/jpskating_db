@@ -47,18 +47,15 @@ export default function AdminLogin() {
     try {
       console.log("[AdminLogin] Calling login function");
       await login(email, password);
-      console.log("[AdminLogin] Login successful, redirecting");
+      console.log("[AdminLogin] Login successful");
 
-      // Check if user is admin after login
-      setTimeout(() => {
-        navigate("/admin/dashboard");
-      }, 500);
+      // Auth context will handle the state update
+      // Component will auto-redirect when user state changes
     } catch (error: any) {
       console.error("[AdminLogin] Login error:", error);
       const errorMsg = error?.message || "Failed to sign in. Please try again.";
       console.error("[AdminLogin] Error message:", errorMsg);
       toast.error(errorMsg);
-    } finally {
       setIsSubmitting(false);
     }
   };
