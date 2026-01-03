@@ -98,19 +98,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    console.log("[AUTH] Login attempt with email:", email);
 
-    if (error) throw error;
-
-    if (data.user) {
-      const profile = await profileService.getById(data.user.id);
-      setUser({
-        ...profile,
-        email: data.user.email || profile.email,
+    try {
+      const loginPromise = supabase.auth.signInWithPassword({
+        email,
+        password,
       });
+
+      // Add 10 second timeout for login
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Login timeout - Supabase connection failed")), 10000)
+      );
+
+      const { data, error } = await Promise.race([loginPromise, timeoutPromise]) as any;
+
+      if (error) {
+        console.error("[AUTH] Login error:", error);
+        throw error;
+      }
+
+      console.log("[AUTH] Login successful, user ID:", data.user?.id);
+
+      if (data.user) {
+        try {
+          const profile = await profileService.getById(data.user.id);
+          console.log("[AUTH] Profile fetched:", profile);
+          setUser({
+            ...profile,
+            email: data.user.email || profile.email,
+          });
+        } catch (profileError) {
+          console.error("[AUTH] Profile fetch error:", profileError);
+          // Even if profile fetch fails, user is authenticated
+          setUser({
+            id: data.user.id,
+            email: data.user.email || email,
+            role: "customer",
+            full_name: null,
+            avatar_url: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+    } catch (error: any) {
+      console.error("[AUTH] Login failed:", error.message);
+      throw error;
     }
   };
 
