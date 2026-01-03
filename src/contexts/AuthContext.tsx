@@ -34,13 +34,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfileWithTimeout = useCallback(async (userId: string, timeoutMs = 3000) => {
-    return Promise.race([
-      profileService.getById(userId),
-      new Promise((_, reject) =>
+  const fetchProfileWithTimeout = useCallback(async (userId: string, timeoutMs = 8000) => {
+    try {
+      const profilePromise = profileService.getById(userId);
+      const timeoutPromise = new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Profile fetch timeout")), timeoutMs)
-      ),
-    ]);
+      );
+
+      return await Promise.race([profilePromise, timeoutPromise]);
+    } catch (error) {
+      console.error("[AUTH] Profile fetch failed:", error);
+      throw error;
+    }
   }, []);
 
   const checkAuth = useCallback(async () => {
