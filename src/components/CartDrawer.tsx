@@ -103,7 +103,7 @@ const CartDrawer = () => {
             <div className="border-t border-border pt-4 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-2xl font-bold text-foreground">${total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-foreground">₹{total.toFixed(2)}</span>
               </div>
 
               <Button
