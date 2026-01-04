@@ -1,20 +1,46 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, ShoppingCart, Heart, Truck, Shield, RotateCcw, Minus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Layout from "@/components/Layout";
 import { toast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
-import { getProductById, allProducts } from "@/data/products";
+import { productService } from "@/services/database";
+import { Product } from "@/types/database";
 
 const ProductPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const { addItem } = useCart();
-  
-  const product = getProductById(Number(id)) || allProducts[0];
+
+  useEffect(() => {
+    const loadProduct = async () => {
+      try {
+        if (!id) {
+          setIsLoading(false);
+          return;
+        }
+        const data = await productService.getById(Number(id));
+        setProduct(data);
+      } catch (error) {
+        console.error("Error loading product:", error);
+        toast({
+          title: "Product not found",
+          variant: "destructive",
+        });
+        navigate("/store");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProduct();
+  }, [id, navigate]);
 
   const handleAddToCart = () => {
     if (!selectedSize) {
