@@ -43,6 +43,8 @@ const ProductPage = () => {
   }, [id, navigate]);
 
   const handleAddToCart = () => {
+    if (!product) return;
+
     if (!selectedSize) {
       toast({
         title: "Please select a size",
@@ -50,13 +52,13 @@ const ProductPage = () => {
       });
       return;
     }
-    
+
     addItem(
       {
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image,
+        image: product.image_url || "",
         category: product.category,
       },
       quantity,
@@ -64,6 +66,34 @@ const ProductPage = () => {
       selectedColor
     );
   };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary mx-auto" />
+            <p className="text-muted-foreground">Loading product...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <p className="text-muted-foreground mb-4">Product not found</p>
+            <Link to="/store">
+              <Button>Back to Store</Button>
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
