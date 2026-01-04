@@ -107,24 +107,36 @@ export default function AdminInventory() {
     e.preventDefault();
 
     try {
+      setIsUploading(true);
+      let imageUrl = formData.image_url;
+
+      // Upload image if a new file was selected
+      if (selectedFile) {
+        try {
+          imageUrl = await storageService.uploadProductImage(selectedFile);
+        } catch (error) {
+          toast.error("Failed to upload image");
+          setIsUploading(false);
+          return;
+        }
+      }
+
+      const productData = {
+        ...formData,
+        image_url: imageUrl,
+        price: parseFloat(formData.price.toString()),
+        original_price: formData.original_price
+          ? parseFloat(formData.original_price.toString())
+          : null,
+        stock_quantity: parseInt(formData.stock_quantity.toString()),
+      };
+
       if (editingProduct) {
-        await productService.update(editingProduct.id, {
-          ...formData,
-          price: parseFloat(formData.price.toString()),
-          original_price: formData.original_price
-            ? parseFloat(formData.original_price.toString())
-            : null,
-          stock_quantity: parseInt(formData.stock_quantity.toString()),
-        });
+        await productService.update(editingProduct.id, productData);
         toast.success("Product updated successfully");
       } else {
         await productService.create({
-          ...formData,
-          price: parseFloat(formData.price.toString()),
-          original_price: formData.original_price
-            ? parseFloat(formData.original_price.toString())
-            : null,
-          stock_quantity: parseInt(formData.stock_quantity.toString()),
+          ...productData,
           is_active: true,
         });
         toast.success("Product created successfully");
@@ -134,6 +146,8 @@ export default function AdminInventory() {
     } catch (error) {
       console.error("Error saving product:", error);
       toast.error("Failed to save product");
+    } finally {
+      setIsUploading(false);
     }
   };
 
